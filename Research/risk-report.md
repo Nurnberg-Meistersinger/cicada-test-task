@@ -18,74 +18,71 @@
 
 ## 1. TL;DR
 
-Solera Markets on Plume Network is **not a suitable venue for meaningful capital deployment at this stage**. The protocol is operational but highly centralized, critically dependent on bridge infrastructure, and shows negligible organic adoption in ETH markets (WETH/pETH).  
+Solera Markets on Plume Network is **not suitable for material capital allocation at this stage**.  
+The protocol is live but remains highly centralized, **dependent on the Plume ↔ Ethereum bridge (pETH)**, and shows **very limited adoption in ETH markets (WETH/pETH)**.  
 
 **Recommendation:**  
 
-- Do **not** allocate material liquidity to Solera.  
-- If Cicada wishes to experiment, limit exposure to **≤1–2% of the crypto portfolio** and treat it as a high-risk pilot.  
-- Reassess only if Solera demonstrates sustained liquidity growth, proven liquidation performance, and decentralization of governance.  
+- Do **not** allocate significant liquidity to Solera at this point.  
+- If Cicada wishes to experiment, limit exposure to **≤1–2% of the crypto portfolio**, treating it as a **systemic and operational high-risk pilot**.  
+- Reassess only if Solera demonstrates sustained liquidity growth, proven liquidation performance, and decentralized governance practices.  
 
 ## 2. Introduction
 
-This report provides a structured assessment of the risks associated with supplying liquidity to the **Solera Markets** protocol.  
-The scope of the analysis covers:
+This report provides a structured risk assessment of supplying liquidity to the **Solera Markets** protocol on Plume Network.  
+The analysis considers multiple categories of risk relevant to Solera’s current stage of development:
 
-- **Technical risks** — vulnerabilities in smart contract code (reentrancy, access control bypass, integer issues), unsafe upgradeability patterns, reliance on external libraries, oracles, and proxies.  
+- **Technical risks** — vulnerabilities in smart contracts, upgradeability design, proxy architecture, and dependence on external libraries/oracles.  
+- **Integration risks** — reliance on the Plume ↔ Ethereum bridge (pETH), external oracles, and liquid staking assets that introduce systemic dependencies.  
+- **Economic risks** — thin liquidity in ETH markets, untested liquidation mechanisms, and potential instability of rate models under stress.  
+- **Governance and centralization risks** — concentrated control in a small set of EOAs and multisigs, lack of decentralized governance processes, and unclear accountability.  
+- **Operational risks** — key management, multisig operations, RPC stability, and infrastructure maturity of the Plume ecosystem.  
+- **Regulatory and compliance risks** — unclear legal treatment of bridged assets (pETH), multisig custodianship, and jurisdictional exposure.  
+- **Market adoption and liquidity risks** — currently negligible ETH market size, raising concerns about market depth, slippage, and systemic solvency.  
+- **Composability risks** — possible contagion effects if Solera is integrated by other DeFi protocols, or if it relies on external dependencies without clear isolation.  
 
-- **Integration risks** — exposure to failures in external oracles, bridges, liquid staking tokens, or other third-party protocols that Solera relies on.  
+The goal is to determine whether providing WETH or pETH on Plume as collateral in Solera is advisable.  
+Risks are assessed by severity and likelihood, with a final recommendation for Cicada’s investment decision.  
 
-- **Economic risks** — risks from protocol design such as collateral volatility, flawed liquidation mechanics, rate model instabilities, liquidity fragmentation, or correlated liquidations.  
-
-- **Governance and centralization risks** — risks from concentrated privileges, reliance on a few EOAs or multisigs, lack of transparent governance, or misaligned incentives between protocol operators and users.  
-
-- **Operational risks** — risks linked to key management, infrastructure downtime, RPC failures, or bugs in deployment/monitoring pipelines that may disrupt normal functioning.  
-
-- **Regulatory and compliance risks** — uncertainty around legal status of assets (pETH, WETH), custodial implications of multisigs, or jurisdictional restrictions that could impact solvency or continuity.  
-
-- **Market adoption and liquidity risks** — insufficient user adoption or fragmented liquidity leading to thin markets, high slippage, or systemic insolvency during stress events.  
-
-- **Composability risks** — risks arising from other protocols integrating Solera markets or Solera integrating external DeFi components, creating hidden interdependencies that can amplify failures.   
-
-The goal of this report is to determine whether providing WETH or pETH on Plume as collateral in Solera is advisable.  
-Risks are categorized by severity and likelihood, and a final recommendation is given on whether Cicada should enter a position.  
-
-**Limitations**: this is a point-in-time assessment based on publicly available information, code repositories, and on-chain data at the moment of research. Future changes in contracts, governance, or market conditions may affect the conclusions.
+**Limitations**: This is a point-in-time analysis based on available on-chain data and test snapshots. The codebase is not publicly accessible, which limits transparency. Future changes in contracts, governance, or market conditions may materially affect conclusions.  
 
 ## 3. Research Methodology
 
 ### 3.1. Analytical Approach
 
-Our approach is structured in clear stages, with each stage producing concrete evidence or findings.  
-All conclusions are backed by documentation, code references, or on-chain data.
+Our approach was structured in stages, with each producing concrete evidence.  
+Where direct code access was not possible (non-public repositories), we relied on on-chain data and proxy inspection.
 
-**Stage 0 — Scope**  
-Define the exact scenario: supplying WETH or pETH on Plume, ideally in an isolated market.  
+**Stage 0 — Scope Definition**  
+Clarify the exact scenario under review: supplying WETH or pETH on Plume Network as collateral in Solera Markets.  
 
 **Stage 1 — Due Diligence**  
-Check legitimacy: official docs, audits, addresses, team/funding signals, and market presence.  
+Assess legitimacy: official documentation, contract deployments, audit references, ecosystem support, and investor/team background.  
 
 **Stage 2 — Protocol Review**  
-Understand Solera’s market design, liquidation mechanics, oracle dependencies, and governance model.  
+Analyze Solera’s market structure, liquidation mechanics, oracle dependencies, and access control model.  
 
 **Stage 3 — Smart Contracts**  
-Review key contracts: deposits, borrowing, liquidations. Focus on upgradeability, access control, and admin powers.  
+Inspect deployed contracts via proxies and AddressBook references. Focus on upgradeability, admin roles, and privileged functions.  
+Note: the source code is not publicly available, which limits the depth of this review.  
 
 **Stage 4 — On-Chain Validation**  
-Verify that documentation matches deployments. Confirm addresses, parameters, and current balances.  
+Cross-check documentation with deployed state: verify addresses, mappings, balances, and key protocol parameters.  
 
-**Stage 5 — External Data Cross-Check**  
-Compare Solera’s reported metrics with independent sources (DefiLlama, Nansen, explorers).  
+**Stage 5 — External Data Correlation**  
+Compare Solera’s on-chain metrics with third-party dashboards (DefiLlama, Nansen, Dune, Plume explorer).  
 
 **Stage 6 — Risk Assessment**  
-Classify risks into Smart-Contract, Integration, Economic, and Centralization. Score by severity × likelihood, and decide:
+Classify risks across categories defined in Section 2 (technical, integration, economic, governance, operational, regulatory, adoption/liquidity, composability).  
+Score risks by severity × likelihood and derive investment stance:  
 
 - Enter
-- Enter with conditions
-- Do not enter
+- Enter with conditions  
+- Do not enter  
 
-**Stage 7 — Monitoring**  
-Define what to track if we enter: contract changes, role shifts, pool balances, oracle freshness. Outline runbooks for emergency response.
+**Stage 7 — Monitoring Plan**  
+If entering, define monitoring for contract upgrades, role changes, pool balances, oracle updates, and bridge health.  
+Given the absence of decentralized governance, continuous monitoring of privileged roles and upgrade events is critical.
 
 ### 3.2. Tools Used
 
@@ -134,42 +131,34 @@ Define what to track if we enter: contract changes, role shifts, pool balances, 
 
 ### 5.1. High-level Description
 
-**Solera Markets** is a decentralized lending protocol deployed on **Plume Network**, an EVM-compatible blockchain designed to host tokenized real-world assets (RWA). Plume positions itself as a specialized Layer-1 for compliant RWA infrastructure, offering native integrations for tokenized treasuries, stablecoins, and other off-chain collateral. While this creates opportunities for institutional DeFi, it also introduces **network-level risks**, as Plume is a relatively new chain with limited validator decentralization compared to Ethereum mainnet or established L2s.  
+**Solera Markets** is a decentralized lending protocol on **Plume Network**, an EVM-compatible Layer-1 specializing in tokenized real-world assets (RWA).  
+Plume positions itself as infrastructure for compliant RWA markets, but its early stage, small validator set, and reliance on bridging introduce **network-level risks** compared to Ethereum mainnet or established L2s.  
 
-Solera is a **fork of Aave v3** with an extended market design:  
+Solera adopts an **Aave v3 fork architecture**, extended with isolated markets powered by the Morpho stack.  
+Due to the lack of publicly available source code, this assessment relies on deployed contract inspection and on-chain behavior.  
 
-- **Main Market:** a shared pool of liquidity where multiple assets can be supplied and borrowed against each other, similar to Aave’s pooled architecture.  
-- **Isolated Markets:** powered by the Morpho stack, each market is a single collateral–single borrow pair. Risks are fully confined to that pair, and once deployed, an isolated market is immutable.  
+- **Main Market:** pooled liquidity, Aave-style.  
+- **Isolated Markets:** immutable 1:1 collateral–borrow pairs (via Morpho).  
 
-When users supply assets, they receive **sTokens** — interest-bearing ERC-20 receipts that grow automatically as interest accrues (rebase-style). When borrowing, the protocol mints **vTokens** to represent variable debt; their balances increase as interest accrues, but unlike sTokens, they are non-transferable.  
-
-Currently, Solera supports WETH and pETH on Plume, as well as stablecoins and other collateral types. Investors can either act as liquidity suppliers (earning yield via sTokens) or borrowers (taking on vToken debt). Returns are determined by dynamic interest rates set by market utilization.  
+Users receive **sTokens** (interest-bearing receipts) when supplying and incur **vTokens** (debt receipts) when borrowing. Currently, ETH-related assets (WETH, pETH) are supported but remain marginal.
 
 ### 5.2. Key Features
 
-1. **Dual market architecture:** Main pooled market (Aave fork) + isolated markets (Morpho stack).  
-
-2. **Oracle diversification:** Multiple providers (Stork, eOracle, Chronicle) to reduce single-point-of-failure risk.  
-
-3. **Risk parameters:** Asset-level LTV, liquidation thresholds, borrow/supply caps, and eMode for correlated assets.  
-
-4. **Immutable isolated markets:** Once deployed, an isolated market cannot be modified, limiting governance risk.
-
-5. **sTokens / vTokens model:** sTokens rebase to reflect supplier yield; vTokens track borrower debt.
-
-6. **Governance & security:** Admin actions and upgrades controlled by a multisig setup, reducing centralization risk.
-
-7. **Permissioned vs permissionless pools:** Optional access-controlled markets for institutional participants.
-
-8. **Liquidity fragmentation trade-off:** Isolated markets localize risk but may reduce available liquidity for liquidations.
-
-9. **Core collateral integration**: WETH and pETH (note: pETH is a bridged asset, introducing bridge risk tied to Ethereum ↔ Plume).
+1. **Dual architecture:** Aave v3 pooled market + Morpho isolated markets.  
+2. **Oracles:** multiple providers (Stork, eOracle, Chronicle).  
+3. **Risk parameters:** LTV, thresholds, caps, eMode.  
+4. **Immutable isolated markets:** governance cannot alter parameters post-deployment.  
+5. **sTokens / vTokens model:** yield accrual vs debt tracking.  
+6. **Governance:** upgrades controlled via multisig; reduces single-key risk but centralization persists.  
+7. **Permissioned pools:** institutional access control optional.  
+8. **Liquidity fragmentation:** isolated markets improve containment but weaken liquidation depth.  
+9. **Core assets:** WETH and bridged pETH (introduces bridge dependency).
 
 ### 5.3. Supported Assets / Markets
 
 #### 5.3.1. Market types
 
-- **Main Market (Aave v3 fork):** pooled, multi-asset lending/borrowing with eMode for correlated assets.
+- **Main Market (Aave v3 fork):** pooled, multi-asset lending/borrowing with eMode for correlated assets.  
 - **Isolated Markets (Morpho stack):** immutable 1:1 collateral–borrow pairs; risks are siloed per market.
 
 #### 5.3.2. Main Market - Overview
@@ -194,51 +183,46 @@ Reference: [Solera App – Main Market Dashboard](https://app.solera.market/mark
 
 ![solera-assets](../Research/images/solera-assets.png)
 
-1. **Total liquidity check.**  
-   - Data: ~$46.6K supplied, ~$22.3K borrowed.  
-   - Observation: this is extremely low TVL for an institutional-grade protocol. Even moderate deposits/withdrawals would distort utilization and APYs.  
-   - Conclusion: liquidity is insufficient for meaningful institutional positions.  
+1. **Total liquidity**  
+   - ~$46.6K supplied, ~$22.3K borrowed.  
+   - Insufficient depth: moderate trades would distort utilization and APYs.
 
-2. **Asset concentration.**  
-   - Data: Plume USD (pUSD) ≈ $20.8K supplied / $17.6K borrowed; Nest Alpha Vault (nALPHA) ≈ $19.9K supplied / $4.1K borrowed. Together >85% of market activity.  
-   - Observation: ETH-linked assets (WETH, pETH) together account for <4% of supply and <$100 borrowed.  
-   - Conclusion: the market is dominated by Plume-native tokens, while ETH assets remain marginal.  
+2. **Asset concentration**  
+   - pUSD ≈ $20.8K supplied / $17.6K borrowed.  
+   - nALPHA ≈ $19.9K supplied / $4.1K borrowed.  
+   - Together >85% of all balances.  
+   - ETH assets (WETH+pETH) <4% of supply, <$100 borrowed.
 
-3. **ETH markets untested.**  
-   - Data: WETH supply ~$930 / borrow ~$23; pETH supply ~$927 / borrow ~$45.  
-   - Observation: positions are negligible compared to stablecoin activity.  
-   - Conclusion: liquidation and collateral mechanics for ETH are unproven under real stress.  
+3. **ETH markets untested**  
+   - WETH supply ~$930 / borrow ~$23.  
+   - pETH supply ~$927 / borrow ~$45.  
+   - Liquidation/collateral mechanics unproven under stress.
 
-4. **Collateral parameters.**  
-   - Data: LTV = 0% for most assets.  
-   - Observation: these assets cannot currently be used as effective collateral.  
-   - Conclusion: the main market functions more like a liquidity sandbox than a full-featured credit market.  
+4. **Collateral parameters**  
+   - LTV = 0% for most assets.  
+   - Protocol currently functions more as a liquidity sandbox.
 
-5. **Borrow rates.**  
-   - Data: pUSD borrow APY ≈ 10.5%; nINSTO borrow APY ≈ 10.6%.  
-   - Observation: such elevated yields are caused by thin liquidity and small utilization shocks.  
-   - Conclusion: current rates are unstable and not representative of sustainable demand.  
+5. **Borrow rates**  
+   - pUSD ≈ 10.5% APY; nINSTO ≈ 10.6% APY.  
+   - Thin liquidity causes unstable, unsustainable yields.
 
-6. **Asset freezes.**  
-   - Data: several assets are flagged as “frozen/paused”. The wording (“by Aave community decisions”) is inherited from the Aave v3 fork. In Solera this reflects an internal governance/admin decision.
-   - Observation: in practice, this disables new supply/borrow, leaving only withdrawals and repayments.  
-   - Conclusion: reliance on governance/ops interventions highlights early-stage maturity and centralization of risk management.  
+6. **Asset freezes**  
+   - Several assets flagged as “frozen/paused.”  
+   - In Solera, this reflects admin governance decisions, not Aave votes.
 
-7. **Market composition.**  
-   - Data: most activity in pUSD, nALPHA, and other Plume-native tokens.  
-   - Observation: ETH-linked assets are marginal (<4% of balances).  
-   - Conclusion: the main market is currently dominated by Plume-native tokens rather than widely recognized crypto assets.
+7. **Market composition**  
+   - Dominated by Plume-native tokens.  
+   - ETH assets marginal, highlighting dependence on local ecosystem.
 
 **Overall conclusion:**  
 The Main Market is shallow, highly concentrated in Plume-native assets, and not yet functional for ETH collateral. Governance-level freezes and 0% LTV parameters further limit usability. For institutional investors, this underlines both the early-stage nature of the protocol and its dependency on Plume-native infrastructure. Additionally, reliance on pETH introduces bridge risk tied to Plume ↔ Ethereum infrastructure.
 
 #### 5.3.4. Isolated Markets – Overview
 
-Solera’s isolated markets are implemented on the **Morpho stack**, where each market is a single collateral–borrow pair (e.g., nETF–pUSD, WETH–pUSD), where the loan asset is consistently pUSD. Once deployed, these markets are **immutable**, meaning parameters cannot be changed later. This design centralizes systemic exposure on the stability of Plume’s native stablecoin.
+Implemented on **Morpho stack**, each market is a single collateral–borrow pair with pUSD as the sole loan currency. Once deployed, parameters are immutable.  
+Liquidity provision is routed via **vaults** (e.g., Re7 pUSD vault), which aggregate deposits and allocate across whitelisted markets.  
 
-Deposits are funneled into **vaults**, which then allocate liquidity across a set of whitelisted isolated markets. For example, the **Re7 pUSD vault** aggregates deposits and routes them into pUSD-denominated markets. Users receive yield-bearing positions from the vault, while the vault enforces loan-to-value ratios (LLTV) and oracle configurations.
-
-The key benefit is **risk containment**: failures in one market cannot propagate across the protocol. The trade-off is **liquidity fragmentation** and dependency on vault operators, since each vault defines which markets are supported and how funds are distributed.
+This model isolates risk per market but introduces liquidity fragmentation and vault dependency.
 
 #### 5.3.5. Isolated Markets – Keypoints
 
@@ -286,28 +270,27 @@ While Solera’s isolated markets show significantly higher TVL than the main ma
 
 ## 6. Due Diligence
 
-The Solera project presents itself as a credit hub on Plume, but the broader due diligence raises several concerns about maturity and long-term viability.  
+The Solera project positions itself as a credit hub on Plume, but broader due diligence reveals material concerns around maturity, transparency, and sustainability.  
 
-**Team.** The developers behind Solera remain fully anonymous. No names, LinkedIn profiles, or GitHub activity are disclosed. While anonymity is not unusual in DeFi, it reduces accountability and makes it difficult to assess the competence of the team compared to protocols like Aave or Morpho where track record is public.  
+**Team.** The developers behind Solera remain anonymous, with no disclosed names, LinkedIn profiles, or verifiable GitHub activity. While pseudonymous teams are not uncommon in DeFi, the absence of a visible track record reduces accountability and limits external validation of the team’s competence.  
 
-**Funding and investors.** There is no evidence of venture backing or institutional investors. The only visible affiliation is with the Plume ecosystem itself, as Solera is exclusively deployed on Plume and relies on Morpho’s stack. This creates some ecosystem credibility but also ties Solera’s success entirely to the fate of a single emerging L1.  
+**Funding and investors.** There is no evidence of venture capital or institutional backers. The only identifiable affiliation is with the Plume ecosystem, as Solera is exclusively deployed on Plume and integrates Morpho’s stack. While this provides ecosystem alignment, it also couples Solera’s prospects tightly to the trajectory of a single emerging L1.  
 
-**Documentation.** The project maintains relatively structured docs with risk parameters, addresses, and audit links. However, discrepancies exist between the documentation and live deployment: for instance, WETH/pETH are described with LTV values around 70%, yet the dashboard currently shows LTV = 0% due to frozen assets. Such gaps suggest that live configuration lags behind specifications, a sign of operational immaturity.  
+**Documentation.** The project maintains structured documentation with risk parameters, addresses, and audit references. However, discrepancies exist between published specifications and live deployment: for example, WETH/pETH are documented with LTV values around 70%, but the dashboard currently shows LTV = 0% due to frozen assets. This indicates misalignment between intended parameters and on-chain configuration.  
 
-**Listings and market metrics.** Solera is listed on DefiLlama but absent from other major aggregators like CoinGecko, CMC, or Token Terminal. According to DefiLlama (Sep 2025), TVL is ~$24.5K with ~$22.3K borrowed. Earlier in June, TVL briefly spiked above $16M before collapsing back near zero, indicating either testing by a single large depositor or temporary inflation through incentives. Such volatility undermines confidence in the stability of the user base.  
+**Listings and market metrics.** Solera is tracked on DefiLlama but absent from major aggregators such as CoinGecko, CoinMarketCap, or Token Terminal. As of September 2025, DefiLlama reports ~$24.5K TVL and ~$22.3K borrowed. Earlier in June, TVL briefly exceeded $16M before collapsing, suggesting either concentrated activity from a single depositor or temporary incentive-driven inflows. Such volatility indicates that the user base is shallow and highly unstable.  
 
-**Social presence.** The project maintains a website and a Twitter/X account, but community engagement is weak and no active Discord/Telegram hubs were found. The limited visibility makes it unlikely that Solera can attract sustained user adoption without stronger outreach.  
+**Social presence.** The project maintains a website and a Twitter/X account, but no active Discord/Telegram channels were identified, and overall community engagement is weak. This lack of traction limits organic monitoring, peer review, and grassroots adoption.  
 
-Overall, the due diligence paints Solera as an **early-stage, high-risk protocol**: the team is anonymous, there is no clear investor backing, documentation and live configuration diverge, and traction remains limited. Its close link to the Plume ecosystem gives some credibility, but also concentrates systemic risk on a single chain and its native stablecoin (pUSD).
+**Overall assessment.** Due diligence highlights Solera as an **early-stage, high-risk protocol**: the team is non-transparent, investor backing is absent, live configuration diverges from documentation, and user adoption remains minimal and volatile. Its close integration with Plume provides ecosystem credibility but concentrates systemic risk on a single chain and its native stablecoin (pUSD).
 
-## 7. Code Overview
+## 7. Smart Contracts
 
 This section provides a deployment-grounded overview of Solera’s smart contracts on **Plume**, grouped by function.  
 All addresses were validated via AddressBook, Tenderly, and Foundry fork tests against `PLUME_RPC`.
 
-**Red flag**: The core codebase of Solera is **not public**.
-
-This significantly limits transparency, prevents community review, and reduces the ability for independent researchers to verify implementation details. All analysis below is therefore based on **on-chain verified contracts**, Tenderly traces, and Foundry fork testing.
+**Red flag:** The Solera codebase is **not public**.  
+This absence of source code limits transparency, prevents community review, and forces independent researchers to rely on on-chain verified bytecode, Tenderly traces, and fork-based validation.
 
 ### 7.1 Component map (by cluster)
 
@@ -319,9 +302,10 @@ This significantly limits transparency, prevents community review, and reduces t
 | **ProxyAdmin (Gnosis Safe)** | `0xA31165684aFA01bBA6D3270c1d182919ACf539f2` |
 
 **Observations**  
-- `ACLManager` exposes roles: `POOL_ADMIN_ROLE`, `RISK_ADMIN_ROLE`, `EMERGENCY_ADMIN_ROLE`, `ASSET_LISTING_ADMIN_ROLE`, `BRIDGE_ROLE`, `FLASH_BORROWER_ROLE`.
-- `PoolAddressesProvider.owner()` and `getACLAdmin()` both resolve to `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
-- Role membership was not fully enumerated; Tenderly showed only role IDs.  
+
+- `ACLManager` defines key roles: `POOL_ADMIN_ROLE`, `RISK_ADMIN_ROLE`, `EMERGENCY_ADMIN_ROLE`, `ASSET_LISTING_ADMIN_ROLE`, `BRIDGE_ROLE`, `FLASH_BORROWER_ROLE`.  
+- Both `PoolAddressesProvider.owner()` and `getACLAdmin()` resolve to `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
+- Role membership was only partially observable; Tenderly surfaced role IDs without holder addresses, suggesting custom enumeration is required.  
 
 #### B) Core Routing & Configuration
 
@@ -333,14 +317,14 @@ This significantly limits transparency, prevents community review, and reduces t
 | **ProtocolDataProvider**    | `0xEE343bd811500ca27995Bc83D7ec2bacb63680d0` |
 
 **Observations**  
-- Anchors from `PoolAddressesProvider` matched these addresses.
-- `PoolProxy.admin` and `PoolConfiguratorProxy.admin` both returned `0x000…000`.  
-  - This is consistent with **UUPS-style proxies** where upgrade rights are handled in the implementation, not via admin slot.  
-- `ProtocolDataProvider` returned coherent reserve/token mappings.  
+
+- Anchors from `PoolAddressesProvider` matched expected addresses.  
+- `PoolProxy.admin` and `PoolConfiguratorProxy.admin` both returned `0x000…000`. This is consistent with **UUPS-style proxies**, where upgrade rights are embedded in the implementation contract rather than stored in the admin slot.  
+- This design requires careful monitoring of implementation upgrade functions.  
 
 #### C) Markets & Tokens
 
-**WETH market**
+**WETH market**:
 
 | Token | Address |
 |-------|---------|
@@ -348,7 +332,7 @@ This significantly limits transparency, prevents community review, and reduces t
 | **sToken** | `0x3a616E5e559593d26adfB7F520b2bb3fB512f90D` |
 | **vToken** | `0x442E289205e925dA232f91ed447427Ed1c71a743` |
 
-**pETH market**
+**pETH market**:
 
 | Token | Address |
 |-------|---------|
@@ -357,16 +341,20 @@ This significantly limits transparency, prevents community review, and reduces t
 | **vToken** | `0x4fC4dE25377b671fA38D855b4cEF72Ae7f74F43a` |
 
 **Observations**  
-- Reserve snapshots returned consistent values (`getReserveData`, `getReserveNormalizedIncome`, `getReserveNormalizedVariableDebt`).
+
+- Reserve calls (`getReserveData`, `getReserveNormalizedIncome`, `getReserveNormalizedVariableDebt`) returned consistent values in fork tests.  
+- No anomalies were observed in supply/borrow snapshots.  
 
 #### D) Oracle & Pricing
 
 | Contract       | Address |
 |----------------|---------|
-| **AaveOracle** | `0x4E269bba0501a4eaa0A008858513faf6b0F6375` |
+| **AaveOracle** | `0x4E269bba050A1a4Ea0A0008858513faf6b0F6375` |
 
 **Observations**  
-- `OracleSnapshot` tests produced valid non-zero prices: ~4.29e11 (WETH), ~4.33e11 (pETH).
+
+- `OracleSnapshot` tests produced valid non-zero prices: ~4.29e11 (WETH), ~4.33e11 (pETH).  
+- Price feeds appeared live and responsive.  
 
 #### E) Rewards & Emissions
 
@@ -374,11 +362,12 @@ This significantly limits transparency, prevents community review, and reduces t
 |----------|---------|
 | **RewardsControllerProxy** | `0xf76F8fE7e3539228fE298549C5C4D959094585E1` |
 | **RewardsControllerImplementation** | `0x2D2fe2D75a49Cb027cf933734134Ce4bbBD9b99c` |
-| **EmissionManager** | `0x9bd5ac51cffff3aefad5c349a25b8cde1576307e` |
+| **EmissionManager** | `0x9bd5ac51FcffF3aeFAD5c349A25b8cDE1576307E` |
 
 **Observations**  
-- Rewards controller is proxied; implementation active.
-- Emission parameters were not captured in this phase.
+
+- RewardsController is proxied and points to the expected implementation.  
+- Emission schedules and parameters were not extracted during this review window; further analysis is recommended.  
 
 #### F) Treasury
 
@@ -388,34 +377,35 @@ This significantly limits transparency, prevents community review, and reduces t
 | **TreasuryImplementation** | `0x64C2f8071830CB0d0C09d20Ca9Dab4178795b0f3` |
 
 **Observations**  
-- `TreasuryProxy.admin` is the **Gnosis Safe** `0xA31165684aFA01bBA6D3270c1d182919ACf539f2`.
-- Contrasts with Pool/Configurator proxies (admin slot = zero).  
+
+- `TreasuryProxy.admin` resolves to the **Gnosis Safe** at `0xA31165684aFA01bBA6D3270c1d182919ACf539f2`.  
+- Safe-based control reduces single-signer risk but concentrates upgrade rights into one multisig.  
 
 ### 7.2 Interaction sketch
 
-- **User actions** (deposit, withdraw, borrow, repay) → `PoolProxy` implementation.  
+- **User actions** (deposit, withdraw, borrow, repay) flow through **PoolProxy** implementation.  
   - Reads **oracle** prices.  
   - Mints/burns **sTokens** and **vTokens**.  
-  - Feeds data to **ProtocolDataProvider** and **RewardsController**.  
-- **Admin actions** (list asset, adjust caps) → `PoolConfiguratorProxy`, gated by **ACLManager**.  
-- **Rewards** → emission logic from **EmissionManager**, distributed by **RewardsControllerProxy**.  
-- **Treasury** → fees accumulate in **TreasuryProxy/Impl**, controlled by **Gnosis Safe**.
+  - Updates **ProtocolDataProvider** and **RewardsController**.  
+- **Admin actions** (asset listing, cap adjustments) flow through **PoolConfiguratorProxy**, gated by **ACLManager**.  
+- **Rewards** are configured via **EmissionManager** and distributed by **RewardsControllerProxy**.  
+- **Treasury** accumulates fees in **TreasuryProxy/Impl**, with governance control via the Gnosis Safe.  
 
-### 7.3 Validated via tests
+### 7.3 Validation via tests
 
-- Anchors from AP matched expected addresses.
-- Pool/Configurator proxies returned `admin = 0x0`.
-- Treasury proxy admin = **Gnosis Safe**.  
+- Anchors from `PoolAddressesProvider` matched AddressBook.  
+- Pool and Configurator proxies returned `admin = 0x0`, consistent with UUPS upgradeability.  
+- Treasury proxy admin = Gnosis Safe.  
 - Oracle returned valid WETH/pETH prices.  
-- Reserve snapshots showed coherent reserve states.  
-- ACL alignment confirmed: AP.owner = AP.getACLAdmin = `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
+- Reserve snapshots showed coherent states.  
+- ACL alignment confirmed: `AP.owner = AP.getACLAdmin = 0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
 
-### 7.4 Gaps
+### 7.4 Open items for monitoring
 
-- Proxy upgrade authority for Pool/Configurator not confirmed (likely UUPS).  
-- Role membership (beyond admin alignment) not enumerated.  
-- Risk parameters (LTVs, LT, supply/borrow caps) not captured in this section.  
-- Reward schedules not extracted.  
+- Upgrade authority of Pool/Configurator implementations not yet confirmed.  
+- Full role membership beyond admin not enumerated.  
+- Risk parameters (LTVs, LT, caps) require ongoing extraction and monitoring.  
+- Emission schedules pending further analysis.  
 
 ### 7.5 Address roll-up
 
@@ -423,11 +413,11 @@ This significantly limits transparency, prevents community review, and reduces t
 - **PoolProxy** — `0x2a8D6a5faB9190580006187b6693f4F69Ee2b07d`  
 - **PoolConfiguratorProxy** — `0xbAA677f70516432C0301039975E46a6B904d1977`  
 - **ACLManager** — `0x267781db3b81947216F74d3ee4CefF0D7156Dcfa`  
-- **AaveOracle** — `0x4E269bba0501a4eaa0A008858513faf6b0F6375`  
+- **AaveOracle** — `0x4E269bba050A1a4Ea0A0008858513faf6b0F6375`  
 - **ProtocolDataProvider** — `0xEE343bd811500ca27995Bc83D7ec2bacb63680d0`  
 - **RewardsControllerProxy** — `0xf76F8fE7e3539228fE298549C5C4D959094585E1`  
 - **RewardsControllerImpl** — `0x2D2fe2D75a49Cb027cf933734134Ce4bbBD9b99c`  
-- **EmissionManager** — `0x9bd5ac51cffff3aefad5c349a25b8cde1576307e`  
+- **EmissionManager** — `0x9bd5ac51FcffF3aeFAD5c349A25b8cDE1576307E`  
 - **TreasuryProxy** — `0x7dbD4D91efc83Ed1BF5549c1114Decb5Dd010907`  
 - **TreasuryImpl** — `0x64C2f8071830CB0d0C09d20Ca9Dab4178795b0f3`  
 - **ProxyAdmin (Gnosis Safe)** — `0xA31165684aFA01bBA6D3270c1d182919ACf539f2`  
@@ -452,10 +442,9 @@ In some cases the labeling was inconsistent: findings marked *Critical* in detai
 
 ### 8.3 Summary
 
-The audit trail suggests that Solera’s main risk is not external exploitation but **internal abuse or mismanagement**.  
-While individual issues have been patched, the underlying model leaves investors dependent on the goodwill of administrators. With no open-source code, limited testing, and opaque governance, Solera cannot be considered trust-minimized.  
+The audit trail indicates that Solera’s primary security exposure is not external exploitation but **internal mismanagement or misuse of admin privileges**. While individual issues noted in audits appear patched, the underlying governance model remains highly centralized. Combined with the absence of public source code, limited independent testing, and opaque upgradeability, Solera cannot be considered a trust-minimized DeFi protocol.  
 
-For institutional allocators this amounts to a **high scam-risk profile**: funds are secure only insofar as Solera’s operators choose not to use their powers against users.
+For institutional allocators, this translates into **material governance and centralization risk**: user funds ultimately depend on the continued restraint and reliability of Solera’s operators.
 
 ## 9. Governance & Access Control
 
