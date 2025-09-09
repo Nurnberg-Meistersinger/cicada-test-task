@@ -11,6 +11,7 @@ The focus is a **risk analysis of the Solera Markets protocol on Plume Network**
 
 ## Repository Structure
 
+```
 ├── Audit/                  # Foundry-based test environment
 │   ├── src/                # Interfaces & helper contracts
 │   └── test/               # Unit tests, fork tests, ACL checks
@@ -18,6 +19,7 @@ The focus is a **risk analysis of the Solera Markets protocol on Plume Network**
 ├── Research/               # Supporting research materials
 │   ├── images/             # Dashboards & diagrams for report
 │   └── risk-report.md      # Main risk assessment report
+```
 
 ## How to Read
 
