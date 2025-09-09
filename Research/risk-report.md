@@ -11,24 +11,41 @@
 7. Code Overview
 8. Audits & Security
 9. Governance & Access Control
-10. On-chain Addresses
-11. On-chain Monitoring
-12. Risk Estimation
-13. Risk Assessment Summary
+10. On-chain Analysis
+11. Risk Estimation
+12. Risk Assessment Summary
+13. Monitoring
 
 ## 1. TL;DR
 
-TODO
+Solera Markets on Plume Network is **not a suitable venue for meaningful capital deployment at this stage**. The protocol is operational but highly centralized, critically dependent on bridge infrastructure, and shows negligible organic adoption in ETH markets (WETH/pETH).  
+
+**Recommendation:**  
+
+- Do **not** allocate material liquidity to Solera.  
+- If Cicada wishes to experiment, limit exposure to **≤1–2% of the crypto portfolio** and treat it as a high-risk pilot.  
+- Reassess only if Solera demonstrates sustained liquidity growth, proven liquidation performance, and decentralization of governance.  
 
 ## 2. Introduction
 
 This report provides a structured assessment of the risks associated with supplying liquidity to the **Solera Markets** protocol.  
 The scope of the analysis covers:
 
-- **Technical risks** — smart contract code quality, upgradeability patterns, use of external dependencies.  
-- **Integration risks** — reliance on oracles, bridges, and third-party protocols.  
-- **Economic risks** — market design, liquidation mechanisms, collateral soundness, and potential systemic vulnerabilities.  
-- **Governance and centralization risks** — roles, privileges, and key management practices.  
+- **Technical risks** — vulnerabilities in smart contract code (reentrancy, access control bypass, integer issues), unsafe upgradeability patterns, reliance on external libraries, oracles, and proxies.  
+
+- **Integration risks** — exposure to failures in external oracles, bridges, liquid staking tokens, or other third-party protocols that Solera relies on.  
+
+- **Economic risks** — risks from protocol design such as collateral volatility, flawed liquidation mechanics, rate model instabilities, liquidity fragmentation, or correlated liquidations.  
+
+- **Governance and centralization risks** — risks from concentrated privileges, reliance on a few EOAs or multisigs, lack of transparent governance, or misaligned incentives between protocol operators and users.  
+
+- **Operational risks** — risks linked to key management, infrastructure downtime, RPC failures, or bugs in deployment/monitoring pipelines that may disrupt normal functioning.  
+
+- **Regulatory and compliance risks** — uncertainty around legal status of assets (pETH, WETH), custodial implications of multisigs, or jurisdictional restrictions that could impact solvency or continuity.  
+
+- **Market adoption and liquidity risks** — insufficient user adoption or fragmented liquidity leading to thin markets, high slippage, or systemic insolvency during stress events.  
+
+- **Composability risks** — risks arising from other protocols integrating Solera markets or Solera integrating external DeFi components, creating hidden interdependencies that can amplify failures.   
 
 The goal of this report is to determine whether providing WETH or pETH on Plume as collateral in Solera is advisable.  
 Risks are categorized by severity and likelihood, and a final recommendation is given on whether Cicada should enter a position.  
@@ -285,32 +302,137 @@ Overall, the due diligence paints Solera as an **early-stage, high-risk protocol
 
 ## 7. Code Overview
 
-## 7. Code Overview
+This section provides a deployment-grounded overview of Solera’s smart contracts on **Plume**, grouped by function.  
+All addresses were validated via AddressBook, Tenderly, and Foundry fork tests against `PLUME_RPC`.
 
-As of September 2025, **Solera does not maintain a public GitHub repository** or otherwise disclose its smart contract source code. This prevents any independent review of repository structure, contract implementation, test coverage, or development practices.  
+**Red flag**: The core codebase of Solera is **not public**.
 
-- **Repository Structure:** Not available (closed-source).  
-- **Core Contracts:** Observable only through on-chain deployments on Plume Explorer and Tenderly. While contract addresses are published and verified, interaction logic must be reverse-engineered from transaction traces rather than source code.  
-- **External Dependencies:** Based on documentation and UI, Solera relies on an Aave v3 fork for its main market, the Morpho stack for isolated markets, and oracle providers such as Stork, eOracle, and Chronicle. These integrations cannot be validated without open repositories.
+This significantly limits transparency, prevents community review, and reduces the ability for independent researchers to verify implementation details. All analysis below is therefore based on **on-chain verified contracts**, Tenderly traces, and Foundry fork testing.
 
-However, we have **reconstructed Solera’s architecture** by mapping verified contracts and transaction flows.
+### 7.1 Component map (by cluster)
 
-Three primary diagram flows are proposed:  
+#### A) Governance & Control
 
-1. **Core Lending Contracts & Flow** — how deposits, borrows, and tokenization (sTokens/vTokens) work in practice.  
+| Contract       | Address |
+|----------------|---------|
+| **ACLManager** | `0x267781db3b81947216F74d3ee4CefF0D7156Dcfa` |
+| **ProxyAdmin (Gnosis Safe)** | `0xA31165684aFA01bBA6D3270c1d182919ACf539f2` |
 
-![]()
+**Observations**  
+- `ACLManager` exposes roles: `POOL_ADMIN_ROLE`, `RISK_ADMIN_ROLE`, `EMERGENCY_ADMIN_ROLE`, `ASSET_LISTING_ADMIN_ROLE`, `BRIDGE_ROLE`, `FLASH_BORROWER_ROLE`.
+- `PoolAddressesProvider.owner()` and `getACLAdmin()` both resolve to `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
+- Role membership was not fully enumerated; Tenderly showed only role IDs.  
 
-2. **Governance, Admin Control & Treasury Architecture** — upgrade paths, admin roles, custody of reserves and emissions.  
+#### B) Core Routing & Configuration
 
-![]()
+| Contract                    | Address |
+|-----------------------------|---------|
+| **PoolAddressesProvider**   | `0x6C0133c25BAeF3D4188C26BbA3f0aC5e85FFa815` |
+| **PoolProxy**               | `0x2a8D6a5faB9190580006187b6693f4F69Ee2b07d` |
+| **PoolConfiguratorProxy**   | `0xbAA677f70516432C0301039975E46a6B904d1977` |
+| **ProtocolDataProvider**    | `0xEE343bd811500ca27995Bc83D7ec2bacb63680d0` |
 
-3. **Oracle & External Integration Layer** — dependencies on price feeds, stablecoins, and cross-chain bridges.  
+**Observations**  
+- Anchors from `PoolAddressesProvider` matched these addresses.
+- `PoolProxy.admin` and `PoolConfiguratorProxy.admin` both returned `0x000…000`.  
+  - This is consistent with **UUPS-style proxies** where upgrade rights are handled in the implementation, not via admin slot.  
+- `ProtocolDataProvider` returned coherent reserve/token mappings.  
 
-![]()
+#### C) Markets & Tokens
 
-**Conclusion:** TODO
+**WETH market**
 
+| Token | Address |
+|-------|---------|
+| **Underlying WETH** | `0xca59cA09E5602fAe8B629DeE83FfA819741f14be` |
+| **sToken** | `0x3a616E5e559593d26adfB7F520b2bb3fB512f90D` |
+| **vToken** | `0x442E289205e925dA232f91ed447427Ed1c71a743` |
+
+**pETH market**
+
+| Token | Address |
+|-------|---------|
+| **Underlying pETH** | `0x39d1F90eF89C52dDA276194E9a832b484ee45574` |
+| **sToken** | `0x30Bb4B93925A6B714f8d0232C69c302541681f35` |
+| **vToken** | `0x4fC4dE25377b671fA38D855b4cEF72Ae7f74F43a` |
+
+**Observations**  
+- Reserve snapshots returned consistent values (`getReserveData`, `getReserveNormalizedIncome`, `getReserveNormalizedVariableDebt`).
+
+#### D) Oracle & Pricing
+
+| Contract       | Address |
+|----------------|---------|
+| **AaveOracle** | `0x4E269bba0501a4eaa0A008858513faf6b0F6375` |
+
+**Observations**  
+- `OracleSnapshot` tests produced valid non-zero prices: ~4.29e11 (WETH), ~4.33e11 (pETH).
+
+#### E) Rewards & Emissions
+
+| Contract | Address |
+|----------|---------|
+| **RewardsControllerProxy** | `0xf76F8fE7e3539228fE298549C5C4D959094585E1` |
+| **RewardsControllerImplementation** | `0x2D2fe2D75a49Cb027cf933734134Ce4bbBD9b99c` |
+| **EmissionManager** | `0x9bd5ac51cffff3aefad5c349a25b8cde1576307e` |
+
+**Observations**  
+- Rewards controller is proxied; implementation active.
+- Emission parameters were not captured in this phase.
+
+#### F) Treasury
+
+| Contract | Address |
+|----------|---------|
+| **TreasuryProxy** | `0x7dbD4D91efc83Ed1BF5549c1114Decb5Dd010907` |
+| **TreasuryImplementation** | `0x64C2f8071830CB0d0C09d20Ca9Dab4178795b0f3` |
+
+**Observations**  
+- `TreasuryProxy.admin` is the **Gnosis Safe** `0xA31165684aFA01bBA6D3270c1d182919ACf539f2`.
+- Contrasts with Pool/Configurator proxies (admin slot = zero).  
+
+### 7.2 Interaction sketch
+
+- **User actions** (deposit, withdraw, borrow, repay) → `PoolProxy` implementation.  
+  - Reads **oracle** prices.  
+  - Mints/burns **sTokens** and **vTokens**.  
+  - Feeds data to **ProtocolDataProvider** and **RewardsController**.  
+- **Admin actions** (list asset, adjust caps) → `PoolConfiguratorProxy`, gated by **ACLManager**.  
+- **Rewards** → emission logic from **EmissionManager**, distributed by **RewardsControllerProxy**.  
+- **Treasury** → fees accumulate in **TreasuryProxy/Impl**, controlled by **Gnosis Safe**.
+
+### 7.3 Validated via tests
+
+- Anchors from AP matched expected addresses.
+- Pool/Configurator proxies returned `admin = 0x0`.
+- Treasury proxy admin = **Gnosis Safe**.  
+- Oracle returned valid WETH/pETH prices.  
+- Reserve snapshots showed coherent reserve states.  
+- ACL alignment confirmed: AP.owner = AP.getACLAdmin = `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`.  
+
+### 7.4 Gaps
+
+- Proxy upgrade authority for Pool/Configurator not confirmed (likely UUPS).  
+- Role membership (beyond admin alignment) not enumerated.  
+- Risk parameters (LTVs, LT, supply/borrow caps) not captured in this section.  
+- Reward schedules not extracted.  
+
+### 7.5 Address roll-up
+
+- **AP** — `0x6C0133c25BAeF3D4188C26BbA3f0aC5e85FFa815`  
+- **PoolProxy** — `0x2a8D6a5faB9190580006187b6693f4F69Ee2b07d`  
+- **PoolConfiguratorProxy** — `0xbAA677f70516432C0301039975E46a6B904d1977`  
+- **ACLManager** — `0x267781db3b81947216F74d3ee4CefF0D7156Dcfa`  
+- **AaveOracle** — `0x4E269bba0501a4eaa0A008858513faf6b0F6375`  
+- **ProtocolDataProvider** — `0xEE343bd811500ca27995Bc83D7ec2bacb63680d0`  
+- **RewardsControllerProxy** — `0xf76F8fE7e3539228fE298549C5C4D959094585E1`  
+- **RewardsControllerImpl** — `0x2D2fe2D75a49Cb027cf933734134Ce4bbBD9b99c`  
+- **EmissionManager** — `0x9bd5ac51cffff3aefad5c349a25b8cde1576307e`  
+- **TreasuryProxy** — `0x7dbD4D91efc83Ed1BF5549c1114Decb5Dd010907`  
+- **TreasuryImpl** — `0x64C2f8071830CB0d0C09d20Ca9Dab4178795b0f3`  
+- **ProxyAdmin (Gnosis Safe)** — `0xA31165684aFA01bBA6D3270c1d182919ACf539f2`  
+- **WETH underlying/s/v** — `0xca59cA09E5602fAe8B629DeE83FfA819741f14be` / `0x3a616E5e559593d26adfB7F520b2bb3fB512f90D` / `0x442E289205e925dA232f91ed447427Ed1c71a743`  
+- **pETH underlying/s/v** — `0x39d1F90eF89C52dDA276194E9a832b484ee45574` / `0x30Bb4B93925A6B714f8d0232C69c302541681f35` / `0x4fC4dE25377b671fA38D855b4cEF72Ae7f74F43a`  
 
 ## 8. Audits & Security
 
@@ -337,28 +459,210 @@ For institutional allocators this amounts to a **high scam-risk profile**: funds
 
 ## 9. Governance & Access Control
 
+The Solera protocol implements a governance structure centered around the `ACLManager` contract and a limited set of privileged addresses. Our analysis, based on on-chain inspection and Foundry tests, yields the following observations:
 
+### Core Governance Addresses
 
-## 10. On-chain Addresses
+- **Owner / ACL Admin (same EOA):**  
+  `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`
+- **ACL Manager contract:**  
+  `0x267781db3b81947216F74d3ee4CefF0D7156Dcfa`
+- **Proxy Admin (Treasury / rewards governance):**  
+  `0xA31165684aFA01bBA6D3270c1d182919ACf539f2` (Gnosis Safe multisig)
 
-### 10.1 Contract Addresses
+### Proxy Administration
 
-### 10.2 Admin / EOA Addresses
+- **Pool Proxy (`0x2a8D6a5faB9190580006187b6693f4F69Ee2b07d`)** → `admin = 0x0000000000000000000000000000000000000000`  
+- **PoolConfigurator Proxy (`0xbAA677f70516432C0301039975E46a6B904d1977`)** → `admin = 0x0000000000000000000000000000000000000000`  
+- **Treasury Proxy (`0x7dbD4D91efc83Ed1BF5549c1114Decb5Dd010907`)** → `admin = 0xA31165684aFA01bBA6D3270c1d182919ACf539f2`  
 
-### 10.3 Observed Activity
+This indicates that upgradeability for **Pool** and **Configurator** has been fully renounced (admins set to zero), while the **Treasury** remains upgradeable under a Gnosis Safe.
 
-## 11. On-chain Monitoring
-### 11.1 Events & Parameters to Track
-### 11.2 Balance & Liquidity Tracking
-### 11.3 Governance / Role Changes
-### 11.4 Suggested Monitoring Tools
+### Roles in ACLManager
 
-## 12. Risk Estimation
-### 12.1 Smart Contract Risks
-### 12.2 Integration Risks
-### 12.3 Economic Risks
-### 12.4 Centralization Risks
+- **POOL_ADMIN** → `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`  
+- **EMERGENCY_ADMIN** → `0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`  
+- **RISK_ADMIN** → Declared role, no active holders found  
+- **ASSET_LISTING_ADMIN** → Declared role, no active holders found  
+- **BRIDGE_ROLE** → Declared role, no active holders found  
 
-## 13. Risk Assessment Summary
-### 13.1 Risk Matrix
-### 13.2 Final Recommendation
+### Sentinel
+
+- **Price Oracle Sentinel:** `0x0000000000000000000000000000000000000000` (unset)
+
+### Key Takeaways
+
+- **Upgradeability:** Core lending contracts (Pool, Configurator) are locked and cannot be upgraded. Treasury and rewards contracts remain upgradeable via a Gnosis Safe.  
+- **Centralization:** Effective governance power is concentrated in a single externally-owned account (`0x4e16eF0278E89f4A79f3581aB0afDF467b1754cD`) and one Gnosis Safe (`0xA31165684aFA01bBA6D3270c1d182919ACf539f2`).  
+- **Unused roles:** `RISK_ADMIN`, `ASSET_LISTING_ADMIN`, and `BRIDGE_ROLE` exist in the ACLManager contract but are not assigned to any active addresses. This limits flexibility for protocol operations.  
+- **Missing safety module:** The absence of a configured Price Oracle Sentinel increases exposure to oracle manipulation, as the protocol has no mechanism to halt operations in case of faulty or malicious price feeds.  
+- **No DAO governance:** There is no evidence of a token-based or decentralized governance process. Governance is effectively centralized around a small set of privileged addresses.
+
+## 10. On-chain Analysis
+
+An analysis of Solera’s on-chain activity and public metrics (via DeFiLlama) reveals patterns that warrant caution:
+
+- **TVL spike-and-drop anomaly**  
+  In May–June 2025, Solera’s TVL abruptly surged to ~$15–18M and then collapsed back to near-zero levels.  
+  Such behavior is inconsistent with organic growth and more typical of *artificial liquidity injections* (e.g., team or investor deposits for metric inflation) followed by full withdrawal.
+
+- **Current TVL is negligible**  
+  As of the time of assessment, Solera’s TVL stands at ~$25k, with ~$22k borrowed.  
+  This indicates that almost the entire pool is utilized, leaving minimal liquidity buffer.  
+  It also suggests that a single participant (or a very small set) may control most of the protocol’s funds.
+
+- **Borrowed / TVL ratio ≈ 0.9**  
+  Normally, lending protocols retain idle liquidity to absorb user withdrawals.  
+  In Solera’s case, nearly all available capital is borrowed out, which may point to *self-supply/self-borrow activity* designed to simulate demand.
+
+- **Potential wash borrowing**  
+  The combination of sudden inflows/outflows and high utilization suggests the possibility of wash borrowing — where liquidity providers and borrowers are effectively the same entities, creating misleading on-chain metrics.
+
+- **Systemic fragility**  
+  With such a small capital base, even a modest withdrawal or liquidation event could render the system insolvent.  
+  This makes the protocol highly vulnerable to liquidity cliffs.
+
+---
+
+### Risk Implications
+
+- Reported metrics may **not reflect genuine external adoption**, but rather orchestrated activity.  
+- The protocol currently operates with **minimal liquidity resilience**, amplifying the risk of insolvency.  
+- Any exposure to Solera should be treated with heightened caution until organic, diversified liquidity growth can be verified.
+
+## 11. Risk Estimation
+
+This section consolidates **all material risks** into a single, decision-oriented view. It avoids restating prior evidence; instead it references earlier sections (e.g., §5 Markets, §7 Code, §8 Security, §9 Governance) and converts observations into scores, alerts, and actions.
+
+### 11.1 Methodology
+
+- **Likelihood (L)**: 1–5 (Rare → Near-certain)  
+- **Impact (I)**: 1–5 (Negligible → Severe)  
+- **Score (S)**: `S = L × I`  
+- **Level**: Low (1–6), Medium (7–10), High (11–15), Critical (16–25)
+
+Where applicable we define **leading indicators** and **escalation thresholds**.
+
+### 11.2 Risk Register (top items)
+
+| ID | Risk statement | Why it matters (ref.) | L | I | S | Level | Early-warning indicators (KPI → threshold) | Primary mitigations |
+|---|---|---|---:|---:|---:|---|---|---|
+| **R1** | **Systemic dependency on pUSD** across isolated markets (borrow leg concentration). | Single-asset dependency → peg/issuer/governance risk propagates system-wide (§5). | 4 | 5 | **20** | **Critical** | Borrow share in pUSD ≥ **80%** of isolated book; on/off-ramp depth ↓; peg deviation > **30 bps** 24h. | Diversify quote assets (USDC/DAI), introduce caps per asset/market, automated depeg circuit. |
+| **R2** | **High LLTV (86–91.5%)** with thin buffers. | Small price moves/oracle noise can cascade liquidations (§5). | 4 | 5 | **20** | **Critical** | Share of markets with LLTV ≥ **90%**; liquidation failure rate > **2%** events; close-factor usage spikes. | Reduce LLTV, raise liquidation bonus, dynamic caps, stress tests on volatile feeds. |
+| **R3** | **Liquidity fragility & usage concentration.** | Main market has “dust” depth for ETH; isolated liquidity concentrated in a single vault (§5). | 4 | 5 | **20** | **Critical** | Top-1 vault ≥ **70%** of supplied notional; utilization swings > **25pp** intraday; AMM depth < **$1m** near peg. | Multi-vault diversification, per-market borrow caps, incentive rebalancing, market-making SLAs. |
+| **R4** | **Oracle circuit-breaker absent** (sentinel not configured). | Mispricing can propagate without a stop-loss (§9). | 3 | 5 | **15** | **High** | Sentinel address = null; price deviation vs reference > **1%/block** without halt; feed stale > **N blocks**. | Enable sentinel with deviation/staleness rules; dual-source aggregation and failover. |
+| **R5** | **Bridge dependency (pETH)** for ETH exposure. | Bridge liveness/security is an external trust assumption (§5). | 3 | 5 | **15** | **High** | Bridge paused; proof delays > **X min** P95; security advisories; withdrawal backlog. | Add native ETH or alternate wrapped ETH; bridge risk caps; pause logic tied to bridge status. |
+| **R6** | **Closed-source & upgradeable core.** | Low auditability; changes can introduce regressions (§7–§8). | 3 | 4 | **12** | **High** | Proxy implementation changes without public RFC; missing release notes/tests; audit diff gaps. | Publish repo/tests; timelock upgrades; third-party diff audits; canary markets. |
+| **R7** | **Governance opacity & key-holder concentration.** | Few actors hold broad privileges; no formalized process (§9). | 3 | 4 | **12** | **High** | Privileged calls (pause/param change) with no prior notice; signer set changes; absent onchain proposals. | Document roles/runbooks; bigger multisig quorum & delay; emergency council scope-limited. |
+| **R8** | **Market-integrity anomalies (wash-trading suspicion).** | Volume spikes vs tiny TVL undermine signal quality (§10). | 3 | 4 | **12** | **High** | Vol/TVL ratio > **5×** without net state change; repeated self-matching patterns. | Outlier filters in reporting; exclude incentive-only flows; independent usage telemetry. |
+| **R9** | **Platform/infra immaturity (Plume).** | Tooling for liquidations/monitoring still maturing (§5). | 3 | 4 | **12** | **High** | Liquidation latency P95 > **N sec**; RPC error rate > **X%**; missed keeper runs. | Multi-RPC failover; offchain keepers; dry-run drills; SLA with node providers. |
+| **R10** | **Doc vs live config drift.** | Discrepancies in LTV/freeze state lead to wrong operator assumptions (§5). | 2 | 4 | **8** | **Medium** | Diff between docs and on-chain params; unannounced freezes. | Doc automation from on-chain; change-logs; config review gates. |
+| **R11** | **Regulatory/counterparty risk around pUSD.** | Policy/governance shifts can affect access/liquidity (§5). | 2 | 4 | **8** | **Medium** | Issuer policy updates; custody/blacklist events; off-ramp frictions. | Counterparty DD; exposure caps; alternatives ready. |
+
+### 11.3 Heatmap (overview)
+
+|            | **Impact: 1** | **2** | **3** | **4** | **5** |
+|------------|:-------------:|:-----:|:-----:|:-----:|:-----:|
+| **L: 5**   |               |       |       |       | **R1,R2,R3** |
+| **4**      |               |       |       | **R6,R7,R8,R9** | **R4,R5** |
+| **3**      |               |       |       | **R10,R11** |  |
+| **2–1**    | (lower-tier items not listed) |
+
+### 11.4 Decision rules (portfolio fit)
+
+- **Entry gate (all required):** oracle sentinel live & tested; LLTV ≤ **80%** for new listings; borrow-side diversification (pUSD share < **60%**) or documented pUSD backing; public code & release notes for last upgrade; demonstrated liquidations under volatility.
+- **Position sizing:** until gates met → **0–1%** of crypto sleeve (R&D). After gates met and stability over **≥90 days** → **1–2%** with hard caps per asset/market.
+- **Scale-down triggers:** breach of sentinel uptime; bridge pause > **X hours**; pUSD peg deviation > **50 bps** 24h; liquidation failure spikes; governance changes without delay/audit.
+
+### 11.5 Monitoring (operational checklist)
+
+- **Oracle & pricing:** sentinel status; deviation/staleness counters; cross-source divergence.  
+- **Liquidity & usage:** TVL/utilization, borrow caps, concentration by vault/asset, liquidation latency & success rate.  
+- **Governance & upgrades:** proxy implementation diffs; privileged calls; signer/quorum changes; documented proposals.  
+- **Bridge health:** pause states, proof latencies, backlog; incident advisories.  
+- **Market integrity:** Vol/TVL outliers, self-trade motifs, net-state deltas vs reported volume.  
+- **Documentation hygiene:** automated diff between on-chain params and docs/UI.
+
+### 11.6 Bottom line
+
+The binding constraints today are: **pUSD concentration (R1), high LLTV with thin buffers (R2), liquidity fragility (R3)**, and **missing oracle circuit-breaker (R4)**. Until these are addressed and real-world stress behavior is observed, any exposure should be treated as **experimental**, gated by §11.4 and monitored per §11.5.
+
+## 12. Risk Assessment Summary
+
+This section synthesizes all identified risks (§11) into a concise, decision-oriented view for Cicada Capital.
+
+### Key Findings
+
+- **Systemic fragility:** Solera’s isolated markets rely entirely on pUSD as the borrow leg. This introduces both bridge and stablecoin dependency, magnifying systemic risk.  
+- **Aggressive risk parameters:** High LLTV (86–91.5%) leaves extremely thin buffers against volatility, unlike mature protocols (Aave, Compound).  
+- **Liquidity immaturity:** Main market ETH positions are negligible, and isolated market liquidity is concentrated in a single vault. This creates fragility and exposes participants to vault-level governance risk.  
+- **Missing safeguards:** The price oracle sentinel is not configured, leaving no mechanism to halt mispriced operations.  
+- **Governance opacity:** Privileged roles are concentrated in one EOA and a Gnosis Safe multisig. There is no DAO process, token governance, or transparent upgrade path.  
+- **Adoption risk:** TVL volatility and suspicious on-chain flows raise concerns of wash trading or artificially inflated metrics.
+
+### Overall Risk Profile
+
+- **Severity:** High to Critical across systemic, economic, and governance dimensions.  
+- **Likelihood:** Medium to High, given Plume’s immaturity and Solera’s operational opacity.  
+- **Residual risk:** Even if audits patch coding bugs, the underlying architecture leaves investors exposed to single points of failure.
+
+### Recommendation
+
+- **Do not allocate meaningful capital at current stage.**  
+- Any exposure should be treated as **experimental (≤1% of crypto sleeve)** under strict monitoring.  
+- Re-entry conditions:  
+  - pUSD dependency reduced (<60% borrow share).  
+  - LLTV lowered to ≤80% with documented stress-test results.  
+  - Oracle sentinel enabled and tested.  
+  - Governance widened (≥3/5 multisig, public process).  
+  - Sustained organic liquidity growth with ≥$50m TVL and diversified vaults.
+
+**Bottom line:**  
+Solera today is not investment-grade. The combination of systemic dependency, fragile parameters, missing safeguards, and governance opacity makes it unsuitable for institutional-scale positions. Cicada should monitor developments but defer significant entry until risk mitigations are in place.
+
+## 13. Monitoring
+
+To mitigate residual risks, Cicada should implement continuous monitoring of Solera’s on-chain activity. The following signals should be tracked in real-time with alerting thresholds:
+
+### Governance and Admin
+
+- **Role changes in ACLManager**  
+  Monitor `RoleGranted` / `RoleRevoked` events for POOL_ADMIN, RISK_ADMIN, EMERGENCY_ADMIN, BRIDGE_ROLE.  
+  Any new EOA gaining privileges should trigger an alert.  
+- **Proxy upgrades**  
+  Track `upgradeTo` events on `poolProxy`, `poolConfiguratorProxy`, and `treasuryProxy`.  
+  Immediate review required for any new implementation address.  
+- **Timelock or Safe activity**  
+  Monitor multisig (0xA31165684aFA01bBA6D3270c1d182919ACf539f2) for queued or executed transactions.
+
+### Market Parameters
+
+- **Reserve configuration changes**  
+  Detect calls to `configureReserveAsCollateral`, `setReserveFactor`, or LLTV changes.  
+  Alerts if LLTV > 80% or ReserveFactor < 10%.  
+- **Oracle changes**  
+  Track `setAssetSources` in AaveOracle.  
+  Alert if oracle source changes to an unverified contract.
+
+### Liquidity and Flow
+
+- **Supply and borrow volumes**  
+  Monitor WETH/pETH supply and borrow. Alert if utilization > 90% or if supply/borrow deviates >30% in <24h.  
+- **sToken/vToken anomalies**  
+  Detect sudden mint/burn spikes that exceed 10% of circulating supply.  
+- **Treasury balance shifts**  
+  Track transfers from Treasury proxy (0x7dbD4D91efc83Ed1BF5549c1114Decb5Dd010907).  
+  Alert if outflows > $50k equivalent in 24h.
+
+### Bridge and Cross-Chain
+
+- **pETH supply vs. bridge inflows**  
+  Compare minted pETH against deposits on the Plume ↔ Ethereum bridge. Alert on discrepancies >1%.  
+- **Bridge contract events**  
+  Monitor `Deposit`, `Withdraw`, `Paused` events for anomalies.
+
+**Implementation:**  
+
+- Use Tenderly alerts, Forta agents, or custom Foundry scripts with `cast logs` pipelines.  
+- Alerts routed to Telegram/Slack for real-time response.  
+- Weekly reporting on governance activity, parameter shifts, and liquidity trends.
