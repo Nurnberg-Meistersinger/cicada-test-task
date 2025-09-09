@@ -1,13 +1,13 @@
 # Cicada Test Task – Solera Audit
 
-Author: **Lev Menshchikov**  
+Author: Lev Menshchikov  
 Role: Blockchain Security Researcher  
 Date: September 2025  
 
 ## Overview
 
 This repository contains the deliverables for the Cicada Capital test task.  
-The focus is a **risk analysis of the Solera Markets protocol on Plume Network**, combining documentation review, on-chain validation, and structured risk reporting.
+The focus is a risk analysis of the Solera Markets protocol on Plume Network, combining documentation review, on-chain validation, and structured risk reporting.
 
 ## Repository Structure
 
